@@ -10,7 +10,7 @@ Experience the next generation of online interaction with Gemini LLM and its arr
 You can watch a demo of the Gemini Chat Web App in action:
 
 <video width="640" height="360" controls>
-  <source Videos="Videos/Webvideo.mp4" type="video/mp4">
+  <source src="Videos/Webvideo.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
 
