@@ -182,9 +182,9 @@ def home_page():
            
     with col2:
         st.markdown("""## <span style='color:#3E5D78'>Sponsored Product</span>""", unsafe_allow_html=True)
-        #video_file = open('Videos/AI_product.mp4', 'rb')
-        #video_bytes = video_file.read()
-        #st.video(video_bytes,start_time=4,end_time="2m10s")
+        video_file = open('Videos/AI_product.mp4', 'rb')
+        video_bytes = video_file.read()
+        st.video(video_bytes,start_time=4,end_time="2m10s")
         st.markdown("""<span style='color:#505470'>**Please Contact for services related query: 
                     <br>
                     📞+91-8147776731 
@@ -205,7 +205,7 @@ def home_page():
                         we recommend consulting qualified professionals.</span>""", unsafe_allow_html=True)
         st.divider()
         st.markdown("**Please watch the Demo**")
-        
+        st.video(r"Videos/Textchat.mp4")
        
     with Image_chat:
         st.markdown("""
@@ -217,17 +217,18 @@ def home_page():
                     </span>""", unsafe_allow_html=True)
         st.divider()
         st.markdown("**Please watch the Demo**")
-       
+        st.video(r"Videos/Imagechat.mp4")
 
     with PDF_chat:
         st.markdown("""
             ###           
-            <span style='color:#365B4F'>  📚 **Navigate to PDF CHAT**: Here user will upload the pdf and submit to process the pdf to convert into text,
+            <span style='color:#365B4F'>  📚 **Navigate PDF CHAT**: Here user will upload the pdf and submit to process the pdf to convert into text,
                         and ask your question the AI system will genrate the answer based on avilable context,
                         Our Q&A model is designed to analyze PDF documents and extract valuable information to answer your questions accurately. 
                         The Gemini model leverages the content within PDFs to generate contextually relevant responses to your inquiries</span>""", unsafe_allow_html=True)
         st.divider()
         st.markdown("**Please watch the Demo**")
+        st.video(r"Videos/PDFchat.mp4")
         
 
     with Video_chat:
@@ -241,7 +242,7 @@ def home_page():
             """, unsafe_allow_html=True)
         st.divider()
         st.markdown("**Please watch the Demo**")
-        
+        st.video(r"Videos/Videochat.mp4")
 
 
 #Function to chat with pdf documents
