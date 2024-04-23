@@ -6,6 +6,8 @@ VistaAI, being Google-powered and based on the Gemini AI architecture, represent
 Experience the next generation of online interaction with Gemini LLM and its array of services. Whether you're seeking information, analyzing images, exploring documents, or delving into videos, we've got you covered. Get ready to embark on a journey of discovery like never before!
 
 # [Try online for free no download 🌐](https://vistaai.streamlit.app/)
+<br>
+   <br>
 
 > HOME
 
