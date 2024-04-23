@@ -5,8 +5,14 @@ VistaAI, being Google-powered and based on the Gemini AI architecture, represent
 
 Experience the next generation of online interaction with Gemini LLM and its array of services. Whether you're seeking information, analyzing images, exploring documents, or delving into videos, we've got you covered. Get ready to embark on a journey of discovery like never before!
 
->Demo Video
-![homepage](https://github.com/Jagadeesha89/VistaAI/blob/main/Videos/Webvideo.mp4)
+## Video Demo
+
+You can watch a demo of the Gemini Chat Web App in action:
+
+<video width="640" height="360" controls>
+  <source Videos="Videos/Webvideo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ## Features:
 VistaAI has many features, which provide the 
