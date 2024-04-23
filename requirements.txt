@@ -1,0 +1,13 @@
+streamlit==1.33.0
+google-generativeai
+python-dotenv
+langchain
+pypdf
+faiss-cpu
+langchain_google_genai
+pdfminer.six
+streamlit-option-menu
+streamlit-lottie
+requests
+youtube_transcript_api
+pathlib
