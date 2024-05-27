@@ -11,3 +11,4 @@ streamlit-lottie
 requests
 youtube_transcript_api
 pathlib
+langchain-community
