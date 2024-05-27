@@ -11,7 +11,7 @@ Experience the next generation of online interaction with Gemini LLM and its arr
 
 > HOME
 
-![homepage](https://github.com/Jagadeesha89/VistaAI/blob/main/Images/Main_Screen.jpg)
+![Webpage](https://github.com/Jagadeesha89/VistaAI/blob/main/Images/Main_Screen.jpg)
 
 
 ## Features:
