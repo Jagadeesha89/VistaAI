@@ -73,7 +73,7 @@ def user_input(user_question):
     st.session_state.response = response['output_text']
 
 #Import the model to genrate the response text based search
-model=genai.GenerativeModel("gemini-pro")
+model=genai.GenerativeModel("gemini-2.0-flash")
 chat=model.start_chat(history=[])
 
 #Function to genrate the response for  user text
@@ -82,7 +82,7 @@ def get_gimini_response_txt(question):
     return response
 
 #Import the model to genrate the response image based Q&A
-vision_model= genai.GenerativeModel('gemini-pro-vision')
+vision_model= genai.GenerativeModel("gemini-2.0-flash")
 
 #Function to genrate the response for  user text
 def get_gimini_response(user_text, image,prompt):
@@ -107,7 +107,7 @@ def extract_transcript_details(youtube_video_url):
 
 #Function to genrate the youtube summary   
 def genrate_yt_content(transcript_text,prompt):
-    model=genai.GenerativeModel("gemini-pro")
+    model=genai.GenerativeModel("gemini-2.0-flash")
     response=model.generate_content(prompt+transcript_text)
     return response.text
 
