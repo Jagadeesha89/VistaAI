@@ -19,6 +19,10 @@ from PIL import Image
 import  google.generativeai as genai
 from io import BytesIO
 from youtube_transcript_api import YouTubeTranscriptApi
+from langchain.embeddings import GoogleGenerativeAIEmbeddings
+from langchain.vectorstores import FAISS
+from langchain.embeddings import HuggingFaceEmbeddings
+from sentence_transformers import SentenceTransformer
 
 #Gemini API configration
 load_dotenv()
@@ -40,9 +44,10 @@ def get_text_chunks(text):
 
 #Function to embedding the text and storing the text chunks
 def get_vector_store(text_chunks):
-    embeddings=GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-    vector_store=FAISS.from_texts(text_chunks,embedding=embeddings)
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
     vector_store.save_local('faiss_index')
+
 
 #Create the prompt and import the model
 def get_conversational_chain():
@@ -61,15 +66,17 @@ def get_conversational_chain():
 
 #Function to take the user input and generate the response
 def user_input(user_question):
-    embeddings=GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-    new_db=FAISS.load_local("faiss_index",embeddings,allow_dangerous_deserialization=True)
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    new_db = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
 
-    docs=new_db.similarity_search(user_question)
-    
-    chain= get_conversational_chain()
-    
-    response=chain(
-        {"input_documents":docs,"question":user_question}, return_only_outputs=True)
+    docs = new_db.similarity_search(user_question)
+
+    chain = get_conversational_chain()
+
+    response = chain(
+        {"input_documents": docs, "question": user_question},
+        return_only_outputs=True
+    )
     st.session_state.response = response['output_text']
 
 #Import the model to genrate the response text based search
