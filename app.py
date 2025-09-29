@@ -107,7 +107,7 @@ prompt="""You are an expert youtube summarizer.Produce a detailed summary of the
 
 #Function to extract the texts from youtube
 def extract_transcript_details(youtube_video_url):
-     try:
+    try:
             video_id = youtube_video_url.split("v=")[1].split("&")[0]
             url = f"https://tubetext.vercel.app/youtube/transcript?video_id={video_id}"
             resp = requests.get(url, timeout=10)
@@ -120,7 +120,7 @@ def extract_transcript_details(youtube_video_url):
             else:
                 raise Exception("Transcript API failed: " + str(data))
     
-        except Exception as e:
+    except Exception as e:
             raise e
 
 #Function to genrate the youtube summary   
