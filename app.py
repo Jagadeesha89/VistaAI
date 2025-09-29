@@ -3,7 +3,7 @@ from pypdf import PdfReader
 from pdfminer.high_level import extract_text
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import os
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+#from langchain_google_genai import GoogleGenerativeAIEmbeddings
 import google.generativeai as genai
 from langchain_community.vectorstores.faiss import FAISS
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -19,7 +19,7 @@ from PIL import Image
 import  google.generativeai as genai
 from io import BytesIO
 from youtube_transcript_api import YouTubeTranscriptApi
-from langchain.embeddings import GoogleGenerativeAIEmbeddings
+#from langchain.embeddings import GoogleGenerativeAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
 from sentence_transformers import SentenceTransformer
