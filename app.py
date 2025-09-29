@@ -270,13 +270,17 @@ def home_page():
 
 #Function to chat with pdf documents
 def chat_with_multipdf():
-    st.header("Multi-PDF's 📚 - Chat Agent 🤖")
-
-    # Initialize session state
+    # Initialize session states
     if "chat_history_pdf" not in st.session_state:
         st.session_state.chat_history_pdf = []
     if "suggested_prompts" not in st.session_state:
         st.session_state.suggested_prompts = []
+
+    st.header("Multi-PDF's 📚 - Chat Agent 🤖 ")
+    st.markdown(
+        "<span style='color:#EE8E8E'>(Once you Click on the Home button 🏠 your chat history will be **Deleted**)</span>",
+        unsafe_allow_html=True
+    )
 
     # Sidebar PDF uploader
     with st.sidebar:
@@ -284,49 +288,43 @@ def chat_with_multipdf():
         lottie_hi = load_lottiefiles(r'Images/PDF.json')
         st_lottie(lottie_hi, loop=True, quality="high", speed=1.65, key=None, height=100)
         st.divider()
-        pdf_docs = st.file_uploader("Upload your PDF Files & Click on Submit & Process")
+        pdf_docs = st.file_uploader("Upload your PDF Files & Click on the Submit & Process Button ")
 
         if pdf_docs is not None:
             if not pdf_docs.name.endswith('.pdf'):
                 st.warning("Uploaded file is not PDF format, Please upload a PDF file.")
             elif st.button("Submit & Process"):
-                with st.spinner("Processing PDF..."):
+                with st.spinner('Processing your PDF...'):
+                    time.sleep(1)
                     raw_text = get_pdf_text(pdf_docs)
                     text_chunks = get_text_chunks(raw_text)
                     get_vector_store(text_chunks)
                     st.success("PDF processed successfully!")
-                    # Generate initial suggested prompts
-                    st.session_state.suggested_prompts = generate_suggested_prompts(raw_text, top_n=10)
 
-    # ---------- Chat Input ----------
-    user_question = st.text_input("Ask a question from your PDF:", key="query_input")
+                    # Generate suggested prompts
+                    st.session_state.suggested_prompts = generate_suggested_prompts(raw_text, top_n=5)
 
-    # ---------- Dynamic Suggestions ----------
-    if st.session_state.suggested_prompts and user_question:
-        filtered_prompts = [
-            prompt for prompt in st.session_state.suggested_prompts
-            if user_question.lower() in prompt.lower()
-        ]
-        if filtered_prompts:
-            st.markdown("**Suggested Questions:**")
-            for prompt in filtered_prompts:
-                if st.button(prompt, key=prompt):
-                    user_question = prompt
-                    user_input(user_question)
-                    st.session_state.chat_history_pdf.append({"role": "user", "content": user_question})
-                    st.session_state.chat_history_pdf.append({"role": "assistant", "content": st.session_state.response})
+    # Chat input
+    user_question = st.chat_input(placeholder="Ask a Question from the PDF Files uploaded .. ✍️📝")
 
-    # ---------- Handle Enter / Ask Button ----------
-    if user_question and st.button("Ask"):
-        user_input(user_question)
-        st.session_state.chat_history_pdf.append({"role": "user", "content": user_question})
-        st.session_state.chat_history_pdf.append({"role": "assistant", "content": st.session_state.response})
+    # Show suggested prompts below input
+    if st.session_state.suggested_prompts:
+        st.markdown("**Suggested Questions based on your PDF:**")
+        for prompt in st.session_state.suggested_prompts:
+            if st.button(prompt):
+                user_question = prompt
 
-    # ---------- Display Chat History ----------
+    # Handle user question
+    if user_question:
+        with st.spinner('Generating answer... 📖'):
+            user_input(user_question)
+            st.session_state.chat_history_pdf.append({"role": "user", "content": user_question})
+            st.session_state.chat_history_pdf.append({"role": "assistant", "content": st.session_state.response})
+
+    # Display chat history
     for message in st.session_state.chat_history_pdf:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
-
         
 #Function to text based response genration                   
 def text_chat():
