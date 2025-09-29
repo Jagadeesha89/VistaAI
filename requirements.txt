@@ -14,5 +14,4 @@ pathlib
 langchain-community
 sentence-transformers
 faiss-cpu
-whisper
-yt-dlp
+keybert
