@@ -18,7 +18,7 @@ import requests
 from PIL import Image
 import  google.generativeai as genai
 from io import BytesIO
-from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api import YouTubeTranscriptApi,TranscriptsDisabled, NoTranscriptFound
 #from langchain.embeddings import GoogleGenerativeAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
@@ -107,21 +107,28 @@ prompt="""You are an expert youtube summarizer.Produce a detailed summary of the
 
 #Function to extract the texts from youtube
 def extract_transcript_details(youtube_video_url):
+    video_id = youtube_video_url.split("v=")[1].split("&")[0]
+
+    # 1. Try TubeText API
     try:
-            video_id = youtube_video_url.split("v=")[1].split("&")[0]
-            url = f"https://tubetext.vercel.app/youtube/transcript?video_id={video_id}"
-            resp = requests.get(url, timeout=10)
-            resp.raise_for_status()
-            data = resp.json()
-    
-            if data.get("success"):
-                transcript = data["data"]["full_text"]  # or use "transcript"
-                return transcript
-            else:
-                raise Exception("Transcript API failed: " + str(data))
-    
+        url = f"https://tubetext.vercel.app/youtube/transcript?video_id={video_id}"
+        resp = requests.get(url, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+        if data.get("success"):
+            return data["data"]["full_text"]
     except Exception as e:
-            raise e
+        print(f"TubeText failed: {e}")
+
+    # 2. Fallback to YouTubeTranscriptApi
+    try:
+        transcript_text = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
+        transcript = " ".join([i['text'] for i in transcript_text])
+        return transcript
+    except (TranscriptsDisabled, NoTranscriptFound):
+        raise Exception("No transcript available for this video")
+    except Exception as e:
+        raise Exception(f"Transcript fetch failed: {e}")
 
 #Function to genrate the youtube summary   
 def genrate_yt_content(transcript_text,prompt):
