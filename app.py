@@ -96,8 +96,9 @@ prompt="""You are an expert youtube summarizer.Produce a detailed summary of the
 #Function to extract the texts from youtube
 def extract_transcript_details(youtube_video_url):
     try:
-        video_id=youtube_video_url.split("=")[1]
-        transcript_text=YouTubeTranscriptApi.fetch(video_id)
+        video_id=youtube_video_url.split("v=")[1].split("&")[0]
+        ytt_api = YouTubeTranscriptApi()
+        transcript_text=ytt_api.fetch(video_id)
         transcript=""
         for i in transcript_text:
             transcript += i['text']
