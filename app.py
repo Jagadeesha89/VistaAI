@@ -107,8 +107,8 @@ def extract_transcript_details(youtube_video_url):
         video_id=youtube_video_url.split("v=")[1].split("&")[0]
         ytt_api = YouTubeTranscriptApi(
             proxy_config=WebshareProxyConfig(
-            proxy_username="vmnwatzl",
-            proxy_password="eh7css64vksw",
+            proxy_username="proxy_username",
+            proxy_password="proxy_password",
             )
         )
         transcript_text=ytt_api.fetch(video_id)
