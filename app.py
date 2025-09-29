@@ -116,20 +116,22 @@ def download_audio(youtube_url, filename="audio.mp3"):
             "preferredcodec": "mp3",
             "preferredquality": "192",
         }],
-        "quiet": True,
+        "http_headers": {   # 👈 force valid headers
+            "User-Agent": "Mozilla/5.0",
+            "Accept-Language": "en-US,en;q=0.9",
+        },
+        "cookiefile": "cookies.txt",   # 👈 optional: pass your browser cookies
+        "quiet": False,
     }
+
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([youtube_url])
     return filename
 
-
-# -------------------------
-# 2. Extract transcript with Whisper (local)
-# -------------------------
 def extract_transcript_details(youtube_video_url):
     try:
         audio_file = download_audio(youtube_video_url)
-        model = whisper.load_model("base")  # use "small" or "medium" for better accuracy
+        model = whisper.load_model("medium")  # use "small" or "medium" for better accuracy
         result = model.transcribe(audio_file)
         transcript = result["text"]
         return transcript
