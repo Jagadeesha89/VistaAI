@@ -12,4 +12,5 @@ requests
 youtube-transcript-api
 pathlib
 langchain-community
-sentence-transformers faiss-cpu
+sentence-transformers
+faiss-cpu
