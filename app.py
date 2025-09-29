@@ -23,8 +23,8 @@ from youtube_transcript_api import YouTubeTranscriptApi,TranscriptsDisabled, NoT
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
 from sentence_transformers import SentenceTransformer
-import yt_dlp
-import whisper
+from keybert import KeyBERT
+import time
 
 #Gemini API configration
 load_dotenv()
