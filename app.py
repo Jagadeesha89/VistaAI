@@ -23,6 +23,7 @@ from youtube_transcript_api import YouTubeTranscriptApi
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
 from sentence_transformers import SentenceTransformer
+from youtube_transcript_api.proxies import WebshareProxyConfig
 
 #Gemini API configration
 load_dotenv()
@@ -104,7 +105,12 @@ prompt="""You are an expert youtube summarizer.Produce a detailed summary of the
 def extract_transcript_details(youtube_video_url):
     try:
         video_id=youtube_video_url.split("v=")[1].split("&")[0]
-        ytt_api = YouTubeTranscriptApi()
+        ytt_api = YouTubeTranscriptApi(
+            proxy_config=WebshareProxyConfig(
+            proxy_username="vmnwatzl",
+            proxy_password="eh7css64vksw",
+            )
+        )
         transcript_text=ytt_api.fetch(video_id)
         transcript=""
         for i in transcript_text:
