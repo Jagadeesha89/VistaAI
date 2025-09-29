@@ -304,14 +304,14 @@ def chat_with_multipdf():
                     # Generate suggested prompts
                     st.session_state.suggested_prompts = generate_suggested_prompts(raw_text, top_n=5)
 
-    # Chat input
     user_question = st.chat_input(placeholder="Ask a Question from the PDF Files uploaded .. ✍️📝")
 
-    # Show suggested prompts below input
+    # Show suggested prompts immediately below the input box
     if st.session_state.suggested_prompts:
         st.markdown("**Suggested Questions based on your PDF:**")
-        for prompt in st.session_state.suggested_prompts:
-            if st.button(prompt):
+        cols = st.columns(len(st.session_state.suggested_prompts))  # Optional: show as horizontal buttons
+        for i, prompt in enumerate(st.session_state.suggested_prompts):
+            if cols[i].button(prompt):
                 user_question = prompt
 
     # Handle user question
