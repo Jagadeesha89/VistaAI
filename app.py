@@ -23,7 +23,8 @@ from youtube_transcript_api import YouTubeTranscriptApi,TranscriptsDisabled, NoT
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
 from sentence_transformers import SentenceTransformer
-from youtube_transcript_api.proxies import WebshareProxyConfig
+import yt_dlp
+import whisper
 
 #Gemini API configration
 load_dotenv()
@@ -106,29 +107,34 @@ prompt="""You are an expert youtube summarizer.Produce a detailed summary of the
  Aim for a comprehensive summary with final conclusion """
 
 #Function to extract the texts from youtube
+def download_audio(youtube_url, filename="audio.mp3"):
+    ydl_opts = {
+        "format": "bestaudio/best",
+        "outtmpl": filename,
+        "postprocessors": [{
+            "key": "FFmpegExtractAudio",
+            "preferredcodec": "mp3",
+            "preferredquality": "192",
+        }],
+        "quiet": True,
+    }
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([youtube_url])
+    return filename
+
+
+# -------------------------
+# 2. Extract transcript with Whisper (local)
+# -------------------------
 def extract_transcript_details(youtube_video_url):
-    video_id = youtube_video_url.split("v=")[1].split("&")[0]
-
-    # 1. Try TubeText API
     try:
-        url = f"https://tubetext.vercel.app/youtube/transcript?video_id={video_id}"
-        resp = requests.get(url, timeout=10)
-        resp.raise_for_status()
-        data = resp.json()
-        if data.get("success"):
-            return data["data"]["full_text"]
-    except Exception as e:
-        print(f"TubeText failed: {e}")
-
-    # 2. Fallback to YouTubeTranscriptApi
-    try:
-        transcript_text = YouTubeTranscriptApi().fetch(video_id, languages=['en'])
-        transcript = " ".join([i['text'] for i in transcript_text])
+        audio_file = download_audio(youtube_video_url)
+        model = whisper.load_model("base")  # use "small" or "medium" for better accuracy
+        result = model.transcribe(audio_file)
+        transcript = result["text"]
         return transcript
-    except (TranscriptsDisabled, NoTranscriptFound):
-        raise Exception("No transcript available for this video")
     except Exception as e:
-        raise Exception(f"Transcript fetch failed: {e}")
+        raise Exception(f"Transcript extraction failed: {e}")
 
 #Function to genrate the youtube summary   
 def genrate_yt_content(transcript_text,prompt):
