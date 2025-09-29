@@ -107,32 +107,16 @@ prompt="""You are an expert youtube summarizer.Produce a detailed summary of the
  Aim for a comprehensive summary with final conclusion """
 
 #Function to extract the texts from youtube
-def download_audio(youtube_url, filename="audio.mp3"):
-    ydl_opts = {
-        "format": "bestaudio/best",
-        "outtmpl": filename,
-        "postprocessors": [{
-            "key": "FFmpegExtractAudio",
-            "preferredcodec": "mp3",
-            "preferredquality": "192",
-        }],
-        "cookiefile": "cookies.txt",  # 👈 use your exported cookies
-        "quiet": False,
-    }
-
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([youtube_url])
-    return filename
-
-def extract_transcript_details(youtube_video_url):
-    try:
-        audio_file = download_audio(youtube_video_url)
-        model = whisper.load_model("medium")  # use "small" or "medium" for better accuracy
-        result = model.transcribe(audio_file)
-        transcript = result["text"]
-        return transcript
-    except Exception as e:
-        raise Exception(f"Transcript extraction failed: {e}")
+def extract_transcript_details(video_url):
+    video_id = video_url.split("v=")[1].split("&")[0]
+    url = f"https://youtube-transcript-api.vercel.app/api?video_id={video_id}"  # Free proxy API
+    resp = requests.get(url, timeout=10)
+    resp.raise_for_status()
+    data = resp.json()
+    if "transcript" in data:
+        return " ".join([t['text'] for t in data['transcript']])
+    else:
+        raise Exception("Transcript not available")
 
 #Function to genrate the youtube summary   
 def genrate_yt_content(transcript_text,prompt):
