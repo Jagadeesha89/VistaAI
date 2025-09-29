@@ -107,21 +107,21 @@ prompt="""You are an expert youtube summarizer.Produce a detailed summary of the
 
 #Function to extract the texts from youtube
 def extract_transcript_details(youtube_video_url):
-    try:
-        video_id=youtube_video_url.split("v=")[1].split("&")[0]
-        ytt_api = YouTubeTranscriptApi(
-            proxy_config=WebshareProxyConfig(
-                proxy_username="vmnwatzl",
-                proxy_password="eh7css64vksw",
-            )
-        )
-        transcript_text=ytt_api.fetch(video_id)
-        transcript=""
-        for i in transcript_text:
-            transcript += i['text']
-        return transcript
-    except Exception as e:
-        raise e
+     try:
+            video_id = youtube_video_url.split("v=")[1].split("&")[0]
+            url = f"https://tubetext.vercel.app/youtube/transcript?video_id={video_id}"
+            resp = requests.get(url, timeout=10)
+            resp.raise_for_status()
+            data = resp.json()
+    
+            if data.get("success"):
+                transcript = data["data"]["full_text"]  # or use "transcript"
+                return transcript
+            else:
+                raise Exception("Transcript API failed: " + str(data))
+    
+        except Exception as e:
+            raise e
 
 #Function to genrate the youtube summary   
 def genrate_yt_content(transcript_text,prompt):
@@ -135,7 +135,9 @@ def get_text_and_conversational_chain():
     You are an expert youtube video summarizer and your role is to answer the question as detailed as possible from the provided context, 
     make sure to provide all the details, if the answer is not in provided context just say, 
     "Modify your question to find the related content in the video", don't provide the wrong answer,you will get $100 as tip if you provided good answer\n\n
+    
     Context:\n {context}?\n
+    
     Question:\n {question}\n
 
     Answer: 
