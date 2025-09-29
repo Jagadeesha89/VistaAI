@@ -29,8 +29,8 @@ from youtube_transcript_api.proxies import WebshareProxyConfig
 load_dotenv()
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
-proxy_username=os.getenv("proxy_username")
-proxy_password=os.getenv("proxy_password")
+#proxy_username=os.getenv("proxy_username")
+#proxy_password=os.getenv("proxy_password")
 
 
 #Function to get the PDF dcouments
@@ -111,8 +111,8 @@ def extract_transcript_details(youtube_video_url):
         video_id=youtube_video_url.split("v=")[1].split("&")[0]
         ytt_api = YouTubeTranscriptApi(
             proxy_config=WebshareProxyConfig(
-            proxy_username="proxy_username",
-            proxy_password="proxy_password",
+            proxy_username="vmnwatzl",
+            proxy_password="eh7css64vksw",
             )
         )
         transcript_text=ytt_api.fetch(video_id)
