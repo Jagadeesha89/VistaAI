@@ -1,4 +1,4 @@
-streamlit
+streamlit==1.33
 google-generativeai
 python-dotenv
 langchain
