@@ -29,6 +29,10 @@ from youtube_transcript_api.proxies import WebshareProxyConfig
 load_dotenv()
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
+proxy_username=os.getenv("proxy_username")
+proxy_password=os.getenv("proxy_password")
+
+
 #Function to get the PDF dcouments
 def get_pdf_text(pdf_docs):
     text=""
