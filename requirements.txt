@@ -9,6 +9,6 @@ pdfminer.six
 streamlit-option-menu
 streamlit-lottie
 requests
-youtube_transcript_api
+youtube-transcript-api
 pathlib
 langchain-community
