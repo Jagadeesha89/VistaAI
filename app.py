@@ -23,7 +23,7 @@ from youtube_transcript_api import YouTubeTranscriptApi
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
 from sentence_transformers import SentenceTransformer
-from youtube_transcript_api._proxy import WebshareProxyConfig
+from youtube_transcript_api.proxies import WebshareProxyConfig
 
 #Gemini API configration
 load_dotenv()
