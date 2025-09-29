@@ -116,11 +116,7 @@ def download_audio(youtube_url, filename="audio.mp3"):
             "preferredcodec": "mp3",
             "preferredquality": "192",
         }],
-        "http_headers": {   # 👈 force valid headers
-            "User-Agent": "Mozilla/5.0",
-            "Accept-Language": "en-US,en;q=0.9",
-        },
-        "cookiefile": "cookies.txt",   # 👈 optional: pass your browser cookies
+        "cookiefile": "cookies.txt",  # 👈 use your exported cookies
         "quiet": False,
     }
 
