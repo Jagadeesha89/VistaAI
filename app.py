@@ -137,16 +137,18 @@ def get_text_and_conversational_chain():
 
 #Function to take the user input and genrate the response
 def user_query(user_question):
-    embeddings=GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-    new_db=FAISS.load_local("faiss_index",embeddings,allow_dangerous_deserialization=True)
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    new_db = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
 
-    docs=new_db.similarity_search(user_question)
-    
-    chain= get_text_and_conversational_chain()
-    
-    response=chain(
-        {"input_documents":docs,"question":user_question}, return_only_outputs=True)
-    st.session_state.response = response['output_text']
+    docs = new_db.similarity_search(user_question)
+
+    chain = get_text_and_conversational_chain()
+
+    response = chain(
+        {"input_documents": docs, "question": user_question},
+        return_only_outputs=True
+    )
+st.session_state.response = response['output_text']
 
 #Function to stream the animations
 def load_lottiefiles(filepath: str):
