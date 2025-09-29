@@ -148,7 +148,7 @@ def user_query(user_question):
         {"input_documents": docs, "question": user_question},
         return_only_outputs=True
     )
-st.session_state.response = response['output_text']
+    st.session_state.response = response['output_text']
 
 #Function to stream the animations
 def load_lottiefiles(filepath: str):
