@@ -122,7 +122,7 @@ def extract_transcript_details(youtube_video_url):
 
     # 2. Fallback to YouTubeTranscriptApi
     try:
-        transcript_text = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
+        transcript_text = YouTubeTranscriptApi().fetch(video_id, languages=['en'])
         transcript = " ".join([i['text'] for i in transcript_text])
         return transcript
     except (TranscriptsDisabled, NoTranscriptFound):
