@@ -285,7 +285,8 @@ def home_page():
 
 
 #Function to chat with pdf documents
-st.header("📚 Multi-PDF Chat with AI Suggestions 🤖")
+def chat_with_multipdf():
+    st.header("📚 Multi-PDF Chat with AI Suggestions 🤖")
 
     # Session state init
     if "chat_history_pdf" not in st.session_state:
