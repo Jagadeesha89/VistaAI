@@ -309,19 +309,20 @@ def chat_with_multipdf():
         st.session_state.sidebar_hidden = False
 
     # Sidebar for PDF Upload
-    with st.sidebar:
-        st.title("📁 PDF Upload")
-        pdf_docs = st.file_uploader("Upload your PDF", type="pdf")
+    if not st.session_state.sidebar_hidden:
+        with st.sidebar:
+            st.title("📁 PDF Upload")
+            pdf_docs = st.file_uploader("Upload your PDF", type="pdf")
 
-        if pdf_docs is not None:
-            if st.button("Submit & Process"):
-                with st.spinner("Processing PDF..."):
-                    raw_text = get_pdf_text(pdf_docs)
-                    text_chunks = get_text_chunks(raw_text)
-                    get_vector_store(text_chunks)
-                    st.session_state.pdf_text = raw_text
-                    # 🔹 Generate context-based suggestions once
-                    st.session_state.doc_suggestions = generate_doc_suggestions(raw_text)
+            if pdf_docs is not None:
+                if st.button("Submit & Process"):
+                    with st.spinner("Processing PDF..."):
+                        raw_text = get_pdf_text(pdf_docs)
+                        text_chunks = get_text_chunks(raw_text)
+                        get_vector_store(text_chunks)
+                        st.session_state.pdf_text = raw_text
+                        # 🔹 Generate context-based suggestions once
+                        st.session_state.doc_suggestions = generate_doc_suggestions(raw_text)
 
     if st.session_state.sidebar_hidden:
         hide_sidebar_css = """
