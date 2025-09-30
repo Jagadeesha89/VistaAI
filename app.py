@@ -80,12 +80,14 @@ def generate_doc_suggestions(pdf_text, n=5):
 
     prompt = f"""
     You are given the following document excerpt:
-    {pdf_text[:2000]}
+    {pdf_text[:20000]}
 
     Based on this, generate {n} natural, full-sentence example questions
     that a user might ask about the document.
     Make them specific to the content (not generic).
     Each on a new line.
+    Make very crisp and clear.
+    Not more than 25 charcters.
     """
 
     try:
