@@ -75,7 +75,7 @@ def get_conversational_chain():
     return chain
     
 #Create the AI sugeestion prompt
-def generate_doc_suggestions(pdf_text, n=5):
+def generate_doc_suggestions(pdf_text, n=8):
     model = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.5)
 
     prompt = f"""
@@ -87,6 +87,7 @@ def generate_doc_suggestions(pdf_text, n=5):
     Make them specific to the content (not generic).
     Each on a new line.
     Make very crisp and clear.
+    Keep it within 50 Charter.
     """
 
     try:
@@ -322,11 +323,11 @@ def chat_with_multipdf():
                 st.success("✅ PDF processed successfully!")
 
     # Query input
-    user_query = st.text_input("Ask a question:")
+    user_query = st.chat_input("Ask a question from the document...")
 
     # 🔹 Show context-specific suggestions
     if st.session_state.doc_suggestions:
-        st.markdown("### 🔮 Suggested Questions from your document")
+        st.markdown("🔮 Suggested Questions from your document")
         cols = st.columns(2)
         for i, suggestion in enumerate(st.session_state.doc_suggestions):
             if cols[i % 2].button(suggestion, key=f"suggestion_{i}"):
@@ -340,15 +341,15 @@ def chat_with_multipdf():
                 )
 
     # Handle manual query submission
-    if user_query and st.button("Ask"):
-        with st.spinner("Generating answer..."):
-            response = answer_question(user_query)
-        st.session_state.chat_history_pdf.append(
-            {"role": "user", "content": user_query}
-        )
-        st.session_state.chat_history_pdf.append(
-            {"role": "assistant", "content": response}
-        )
+   if user_query:
+    with st.spinner("Generating answer..."):
+        response = answer_question(user_query)
+    st.session_state.chat_history_pdf.append(
+        {"role": "user", "content": user_query}
+    )
+    st.session_state.chat_history_pdf.append(
+        {"role": "assistant", "content": response}
+    )
 
     # Display chat history
     for msg in st.session_state.chat_history_pdf:
