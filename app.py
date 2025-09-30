@@ -312,7 +312,11 @@ def chat_with_multipdf():
     if not st.session_state.sidebar_hidden:
         with st.sidebar:
             st.title("📁 PDF Upload")
-            pdf_docs = st.file_uploader("Upload your PDF", type="pdf")
+            lottie_hi = load_lottiefiles(r'Images/PDF.json')
+            st_lottie(
+                lottie_hi, loop=True, quality="high", speed=1.65, key=None, height=100)
+            st.divider()
+            pdf_docs = st.file_uploader("Upload your PDF & \n Click on the Submit & Process Button", type="pdf")
     
             if pdf_docs is not None:
                 if st.button("Submit & Process"):
