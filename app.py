@@ -15,6 +15,8 @@ from streamlit_lottie import st_lottie
 import json
 import time
 import requests
+from langchain.chat_models import ChatGoogleGenerativeAI
+from PyPDF2 import PdfReader
 from PIL import Image
 import  google.generativeai as genai
 from io import BytesIO
@@ -69,7 +71,26 @@ def get_conversational_chain():
     promt=PromptTemplate(template=prompt_template, input_variables=['context','question'])
     chain=load_qa_chain(model,chain_type="stuff", prompt=promt)
     return chain
+    
+#Create the AI sugeestion prompt
+def generate_ai_suggestions(query, pdf_text, top_n=5):
+    model = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.6)
+    prompt ="""
+    The user typed: "{query}".
+    The document contains content about: {pdf_text[:1000]}...
 
+    Based on this, generate {top_n} intelligent and helpful suggested questions
+    that the user might want to ask. Each should be a full natural sentence.
+    """
+    response = model.predict(prompt)
+
+    # Parse Gemini output into clean suggestions
+    suggestions = [
+        line.strip("0123456789.- ").strip()
+        for line in response.split("\n") if line.strip()
+    ]
+    return suggestions[:top_n]
+    
 #Function to take the user input and generate the response
 def user_input(user_question):
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
@@ -83,13 +104,8 @@ def user_input(user_question):
         {"input_documents": docs, "question": user_question},
         return_only_outputs=True
     )
-    st.session_state.response = response['output_text']
+    return response['output_text']
 
-def generate_suggested_prompts(text, top_n=5):
-    kw_model = KeyBERT()
-    keywords = kw_model.extract_keywords(text, keyphrase_ngram_range=(1, 3), stop_words='english', top_n=top_n)
-    suggested_prompts = [f"Tell me about '{kw[0]}' from the PDF." for kw in keywords]
-    return suggested_prompts
 
 #Import the model to genrate the response text based search
 model=genai.GenerativeModel("gemini-2.0-flash")
@@ -269,62 +285,54 @@ def home_page():
 
 
 #Function to chat with pdf documents
-def chat_with_multipdf():
-    # Initialize session states
+st.header("📚 Multi-PDF Chat with AI Suggestions 🤖")
+
+    # Session state init
     if "chat_history_pdf" not in st.session_state:
         st.session_state.chat_history_pdf = []
-    if "suggested_prompts" not in st.session_state:
-        st.session_state.suggested_prompts = []
+    if "pdf_text" not in st.session_state:
+        st.session_state.pdf_text = ""
 
-    st.header("Multi-PDF's 📚 - Chat Agent 🤖 ")
-    st.markdown(
-        "<span style='color:#EE8E8E'>(Once you Click on the Home button 🏠 your chat history will be **Deleted**)</span>",
-        unsafe_allow_html=True
-    )
-
-    # Sidebar PDF uploader
+    # Sidebar for PDF Upload
     with st.sidebar:
-        st.title("📁 PDF File's Section")
-        lottie_hi = load_lottiefiles(r'Images/PDF.json')
-        st_lottie(lottie_hi, loop=True, quality="high", speed=1.65, key=None, height=100)
-        st.divider()
-        pdf_docs = st.file_uploader("Upload your PDF Files & Click on the Submit & Process Button ")
+        st.title("📁 PDF Upload")
+        pdf_docs = st.file_uploader("Upload your PDF", type="pdf")
 
         if pdf_docs is not None:
-            if not pdf_docs.name.endswith('.pdf'):
-                st.warning("Uploaded file is not PDF format, Please upload a PDF file.")
-            elif st.button("Submit & Process"):
-                with st.spinner('Processing your PDF...'):
-                    time.sleep(1)
+            if st.button("Submit & Process"):
+                with st.spinner("Processing PDF..."):
                     raw_text = get_pdf_text(pdf_docs)
                     text_chunks = get_text_chunks(raw_text)
                     get_vector_store(text_chunks)
-                    st.success("PDF processed successfully!")
+                    st.session_state.pdf_text = raw_text
+                st.success("✅ PDF processed successfully!")
 
-                    # Generate suggested prompts
-                    st.session_state.suggested_prompts = generate_suggested_prompts(raw_text, top_n=5)
+    # Query input
+    user_query = st.text_input("Ask a question:")
 
-    # Chat input
-    user_question = st.chat_input(placeholder="Ask a Question from the PDF Files uploaded .. ✍️📝")
+    # AI Suggestions while typing
+    if user_query and st.session_state.pdf_text:
+        suggestions = generate_ai_suggestions(user_query, st.session_state.pdf_text, top_n=5)
+        st.markdown("### 🔮 AI Suggestions")
+        for s in suggestions:
+            if st.button(s, key=s):
+                # Answer immediately when suggestion clicked
+                with st.spinner("Generating answer..."):
+                    response = answer_question(s)
+                st.session_state.chat_history_pdf.append({"role": "user", "content": s})
+                st.session_state.chat_history_pdf.append({"role": "assistant", "content": response})
 
-    # Show suggested prompts below input
-    if st.session_state.suggested_prompts:
-        st.markdown("**Suggested Questions based on your PDF:**")
-        for prompt in st.session_state.suggested_prompts:
-            if st.button(prompt):
-                user_question = prompt
-
-    # Handle user question
-    if user_question:
-        with st.spinner('Generating answer... 📖'):
-            user_input(user_question)
-            st.session_state.chat_history_pdf.append({"role": "user", "content": user_question})
-            st.session_state.chat_history_pdf.append({"role": "assistant", "content": st.session_state.response})
+    # Handle manual query submission
+    if user_query and st.button("Ask"):
+        with st.spinner("Generating answer..."):
+            response = answer_question(user_query)
+        st.session_state.chat_history_pdf.append({"role": "user", "content": user_query})
+        st.session_state.chat_history_pdf.append({"role": "assistant", "content": response})
 
     # Display chat history
-    for message in st.session_state.chat_history_pdf:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+    for msg in st.session_state.chat_history_pdf:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
         
 #Function to text based response genration                   
 def text_chat():
