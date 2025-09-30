@@ -62,7 +62,7 @@ def get_vector_store(text_chunks):
 #Create the prompt and import the model
 def get_conversational_chain():
     prompt_template= """
-    Answer the question as detailed as possible from the provided context, make sure to provide all the details, if the answer is not in
+    Answer the question as detailed as possible from the provided context, make sure to provide all the details, make the bullet points for easy under standing, if the answer is not in
     provided context just say, "Modify your question to find the related content in the document", don't provide the wrong answer\n\n
     Context:\n {context}?\n
     Question:\n {question}\n
@@ -87,7 +87,6 @@ def generate_doc_suggestions(pdf_text, n=5):
     Make them specific to the content (not generic).
     Each on a new line.
     Make very crisp and clear.
-    Not more than 25 charcters.
     """
 
     try:
