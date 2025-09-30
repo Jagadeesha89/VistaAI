@@ -343,7 +343,7 @@ def chat_with_multipdf():
     # Handle manual query submission
     if user_query:
         with st.spinner("Generating answer..."):
-        response = answer_question(user_query)
+            response = answer_question(user_query)
     st.session_state.chat_history_pdf.append(
         {"role": "user", "content": user_query}
     )
