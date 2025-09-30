@@ -87,7 +87,6 @@ def generate_doc_suggestions(pdf_text, n=8):
     Make them specific to the content (not generic).
     Each on a new line.
     Make very crisp and clear.
-    Keep it within 50 Charter.
     """
 
     try:
@@ -321,6 +320,12 @@ def chat_with_multipdf():
                     # 🔹 Generate context-based suggestions once
                     st.session_state.doc_suggestions = generate_doc_suggestions(raw_text)
                 st.success("✅ PDF processed successfully!")
+                hide_sidebar = """
+                <style>
+                [data-testid="stSidebar"] {display: none;}
+                </style>
+                """
+                st.markdown(hide_sidebar, unsafe_allow_html=True)
 
     # Query input
     user_query = st.chat_input("Ask a question from the document...")
