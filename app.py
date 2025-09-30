@@ -33,26 +33,17 @@ genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 #proxy_username=os.getenv("proxy_username")
 #proxy_password=os.getenv("proxy_password")
 
-FAISS_DIR = "faiss_index"
-
-def ensure_session_state_keys():
-    if "chat_history_pdf" not in st.session_state:
-        st.session_state.chat_history_pdf = []
-    if "pdf_text" not in st.session_state:
-        st.session_state.pdf_text = ""
-    if "faiss_ready" not in st.session_state:
-        st.session_state.faiss_ready = False
-
-ensure_session_state_keys()
 
 #Function to get the PDF dcouments
 def get_pdf_text(pdf_docs):
-    text=""
-    pdf_reader=PdfReader(pdf_docs)
+    text = ""
+    pdf_reader = PdfReader(pdf_docs)
     for page in pdf_reader.pages:
-        text+=page.extract_text()
+        page_text = page.extract_text()
+        if page_text:
+            text += page_text + "\n"
     return text
-
+    
 #Function to extract the text from provided PDF
 def get_text_chunks(text):
     text_splitter=RecursiveCharacterTextSplitter(chunk_size=10000, chunk_overlap=1000)
@@ -61,18 +52,11 @@ def get_text_chunks(text):
 
 #Function to embedding the text and storing the text chunks
 def get_vector_store(text_chunks):
-    """
-    Create FAISS index and save to FAISS_DIR
-    """
-    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    )
     vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
-    # create directory if it doesn't exist
-    if not os.path.exists(FAISS_DIR):
-        os.makedirs(FAISS_DIR, exist_ok=True)
-    vector_store.save_local(FAISS_DIR)
-
-def faiss_exists():
-    return os.path.isdir(FAISS_DIR) and len(os.listdir(FAISS_DIR)) > 0
+    vector_store.save_local("faiss_index")
 
 
 #Create the prompt and import the model
@@ -91,94 +75,46 @@ def get_conversational_chain():
     return chain
     
 #Create the AI sugeestion prompt
-def generate_ai_suggestions(query, pdf_text, top_n=5):
-    """
-    Return a list of suggested full-sentence questions from Gemini based on the typed query and PDF context.
-    """
-    try:
-        model = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.6)
-        prompt = """
-            The user typed: "{query}"
-            Here is the start of the PDF content to provide context: {pdf_text[:1500]}...
-            
-            Based on this typed fragment and the PDF context, generate up to {top_n} natural, full-sentence question suggestions
-            the user might want to ask the document's contents about. Provide each suggestion on its own line.
-            """
-        # Use model.predict / model.__call__ depending on your langchain version.
-        # We'll try model.predict and fallback to calling the model as a function.
-        try:
-            response = model.predict(prompt)
-        except Exception:
-            # Some langchain versions use model.generate or model.__call__
-            response = model(prompt)
+def generate_doc_suggestions(pdf_text, n=5):
+    model = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.5)
 
-        # Parse response lines into list
-        suggestions = [
-            line.strip("0123456789.- )\t").strip()
-            for line in str(response).splitlines()
-            if line.strip()
-        ]
-        return suggestions[:top_n]
-    except Exception as e:
-        # Show error in the UI so you know Gemini failed (likely auth or API issue)
-        st.error(f"AI suggestion generation error: {e}")
-        st.code(traceback.format_exc())
-        return []
+    prompt = f"""
+    You are given the following document excerpt:
+    {pdf_text[:2000]}
+
+    Based on this, generate {n} natural, full-sentence example questions
+    that a user might ask about the document.
+    Make them specific to the content (not generic).
+    Each on a new line.
+    """
+
+    try:
+        raw = model.predict(prompt)
+    except Exception:
+        raw = model.invoke(prompt)
+
+    suggestions = [
+        line.strip("0123456789.- )\t").strip()
+        for line in raw.splitlines()
+        if line.strip()
+    ]
+    return suggestions[:n]
     
 #Function to take the user input and generate the response
 def answer_question(user_question):
-    """
-    Load FAISS, run similarity search and answer with chain.
-    This function is defensive and prints tracebacks to the Streamlit app on error.
-    """
-    try:
-        # Ensure FAISS index is ready
-        if not faiss_exists() or not st.session_state.get("faiss_ready", False):
-            return "FAISS index not found. Please upload and process a PDF first (use Submit & Process)."
-
-        embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-
-        # Load FAISS index from disk
-        try:
-            new_db = FAISS.load_local(FAISS_DIR, embeddings, allow_dangerous_deserialization=True)
-        except Exception as e:
-            # Specific error while loading index
-            st.error("Failed to load FAISS index from disk.")
-            st.code(traceback.format_exc())
-            return f"Failed to load FAISS index: {e}"
-
-        # similarity search (k=4)
-        try:
-            docs = new_db.similarity_search(user_question, k=4)
-        except TypeError:
-            # Some versions use different param name
-            docs = new_db.similarity_search(user_question)
-
-        if not docs:
-            # fallback: try to find the query inside the raw PDF text
-            pdf_text = st.session_state.get("pdf_text", "")
-            idx = pdf_text.lower().find(user_question.lower()) if pdf_text else -1
-            if idx != -1:
-                start = max(0, idx - 200)
-                end = min(len(pdf_text), idx + 500)
-                snippet = pdf_text[start:end]
-                return f"No high-similarity chunks found in the vector store, but I found this snippet in the PDF:\n\n{snippet}"
-            return "No relevant document chunks found for the question. Try rephrasing."
-
-        # Build the chain and call
-        chain = get_conversational_chain()
-        response = chain({"input_documents": docs, "question": user_question}, return_only_outputs=True)
-
-        # Different langchain versions return different keys
-        if isinstance(response, dict):
-            return response.get("output_text") or response.get("answer") or str(response)
-        else:
-            return str(response)
-    except Exception as e:
-        st.error(f"Unhandled error while answering question: {e}")
-        st.code(traceback.format_exc())
-        return f"Internal error: {e}"
-
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    )
+    new_db = FAISS.load_local(
+        "faiss_index", embeddings, allow_dangerous_deserialization=True
+    )
+    docs = new_db.similarity_search(user_question)
+    chain = get_conversational_chain()
+    response = chain(
+        {"input_documents": docs, "question": user_question},
+        return_only_outputs=True
+    )
+    return response["output_text"]
 
 #Import the model to genrate the response text based search
 model=genai.GenerativeModel("gemini-2.0-flash")
@@ -359,68 +295,65 @@ def home_page():
 
 #Function to chat with pdf documents
 def chat_with_multipdf():
-    st.header("📚 Multi-PDF Chat with Live AI Suggestions 🤖")
-    ensure_session_state_keys()
+    st.header("📚 Multi-PDF Chat with Smart Suggestions 🤖")
 
-    # Sidebar: upload & process PDF
+    if "chat_history_pdf" not in st.session_state:
+        st.session_state.chat_history_pdf = []
+    if "pdf_text" not in st.session_state:
+        st.session_state.pdf_text = ""
+    if "doc_suggestions" not in st.session_state:
+        st.session_state.doc_suggestions = []
+
+    # Sidebar for PDF Upload
     with st.sidebar:
-        st.title("📁 Upload PDF")
-        pdf_docs = st.file_uploader("Upload your PDF (single file)", type="pdf")
+        st.title("📁 PDF Upload")
+        pdf_docs = st.file_uploader("Upload your PDF", type="pdf")
+
         if pdf_docs is not None:
-            st.write(f"Uploaded file: {pdf_docs.name}")
             if st.button("Submit & Process"):
-                try:
-                    with st.spinner("Extracting text and building embeddings..."):
-                        raw_text = get_pdf_text(pdf_docs)
-                        text_chunks = get_text_chunks(raw_text)
-                        get_vector_store(text_chunks)
-                        st.session_state.pdf_text = raw_text
-                        st.session_state.faiss_ready = True
-                    st.success("✅ PDF processed and FAISS index created.")
-                except Exception as e:
-                    st.error("Failed to process PDF or build embeddings.")
-                    st.code(traceback.format_exc())
-                    st.session_state.faiss_ready = False
+                with st.spinner("Processing PDF..."):
+                    raw_text = get_pdf_text(pdf_docs)
+                    text_chunks = get_text_chunks(raw_text)
+                    get_vector_store(text_chunks)
+                    st.session_state.pdf_text = raw_text
+                    # 🔹 Generate context-based suggestions once
+                    st.session_state.doc_suggestions = generate_doc_suggestions(raw_text)
+                st.success("✅ PDF processed successfully!")
 
-        # Optional debug tools
-        st.divider()
-        if st.button("Check FAISS files"):
-            st.write("FAISS exists:", faiss_exists())
-            if faiss_exists():
-                st.write("Files:", os.listdir(FAISS_DIR))
+    # Query input
+    user_query = st.text_input("Ask a question:")
 
-    # Main: query input
-    user_query = st.text_input("Ask a question (type to get live AI suggestions)", key="query_input")
+    # 🔹 Show context-specific suggestions
+    if st.session_state.doc_suggestions:
+        st.markdown("### 🔮 Suggested Questions from your document")
+        cols = st.columns(2)
+        for i, suggestion in enumerate(st.session_state.doc_suggestions):
+            if cols[i % 2].button(suggestion, key=f"suggestion_{i}"):
+                with st.spinner("Generating answer..."):
+                    response = answer_question(suggestion)
+                st.session_state.chat_history_pdf.append(
+                    {"role": "user", "content": suggestion}
+                )
+                st.session_state.chat_history_pdf.append(
+                    {"role": "assistant", "content": response}
+                )
 
-    # Live AI suggestions while typing
-    suggestions = []
-    if user_query and st.session_state.pdf_text:
-        # generate suggestions (Gemini call)
-        suggestions = generate_ai_suggestions(user_query, st.session_state.pdf_text, top_n=5)
-        if suggestions:
-            st.markdown("### 🔮 AI Suggestions")
-            for i, s in enumerate(suggestions):
-                # unique key for each suggestion button
-                if st.button(s, key=f"suggestion_{i}_{hash(s)}"):
-                    # answer immediately
-                    with st.spinner("Generating answer..."):
-                        resp = answer_question(s)
-                    st.session_state.chat_history_pdf.append({"role": "user", "content": s})
-                    st.session_state.chat_history_pdf.append({"role": "assistant", "content": resp})
-
-    # Manual Ask button for typed query
+    # Handle manual query submission
     if user_query and st.button("Ask"):
         with st.spinner("Generating answer..."):
-            resp = answer_question(user_query)
-        st.session_state.chat_history_pdf.append({"role": "user", "content": user_query})
-        st.session_state.chat_history_pdf.append({"role": "assistant", "content": resp})
+            response = answer_question(user_query)
+        st.session_state.chat_history_pdf.append(
+            {"role": "user", "content": user_query}
+        )
+        st.session_state.chat_history_pdf.append(
+            {"role": "assistant", "content": response}
+        )
 
-    # Show chat history
-    st.divider()
-    for message in st.session_state.chat_history_pdf:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-        
+    # Display chat history
+    for msg in st.session_state.chat_history_pdf:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
 #Function to text based response genration                   
 def text_chat():
 
