@@ -15,7 +15,6 @@ from streamlit_lottie import st_lottie
 import json
 import time
 import requests
-from PyPDF2 import PdfReader
 from PIL import Image
 import  google.generativeai as genai
 from io import BytesIO
