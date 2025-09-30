@@ -344,12 +344,12 @@ def chat_with_multipdf():
     if user_query:
         with st.spinner("Generating answer..."):
             response = answer_question(user_query)
-    st.session_state.chat_history_pdf.append(
-        {"role": "user", "content": user_query}
-    )
-    st.session_state.chat_history_pdf.append(
-        {"role": "assistant", "content": response}
-    )
+        st.session_state.chat_history_pdf.append(
+            {"role": "user", "content": user_query}
+        )
+        st.session_state.chat_history_pdf.append(
+            {"role": "assistant", "content": response}
+        )
 
     # Display chat history
     for msg in st.session_state.chat_history_pdf:
