@@ -305,6 +305,9 @@ def chat_with_multipdf():
     if "doc_suggestions" not in st.session_state:
         st.session_state.doc_suggestions = []
 
+    if "sidebar_hidden" not in st.session_state:
+        st.session_state.sidebar_hidden = False
+
     # Sidebar for PDF Upload
     with st.sidebar:
         st.title("📁 PDF Upload")
@@ -319,14 +322,14 @@ def chat_with_multipdf():
                     st.session_state.pdf_text = raw_text
                     # 🔹 Generate context-based suggestions once
                     st.session_state.doc_suggestions = generate_doc_suggestions(raw_text)
-                st.success("✅ PDF processed successfully!")
-                hide_sidebar = """
-                <style>
-                [data-testid="stSidebar"] {display: none;}
-                </style>
-                """
-                st.markdown(hide_sidebar, unsafe_allow_html=True)
 
+    if st.session_state.sidebar_hidden:
+        hide_sidebar_css = """
+        <style>
+        [data-testid="stSidebar"] {display: none;}
+        </style>
+        """
+        st.markdown(hide_sidebar_css, unsafe_allow_html=True)
     # Query input
     user_query = st.chat_input("Ask a question from the document...")
 
